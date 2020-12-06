@@ -17,6 +17,7 @@ extension URLSession: Session {
     func send(_ log: Log, key: String, region: Region, handler: @escaping (Result<StatusCode, Error>) -> ()) {
         do {
             let data = try JSONEncoder().encode(log)
+            print(log)
 
             var request = URLRequest(url: region.getURL())
             request.httpMethod = "POST"
@@ -26,9 +27,12 @@ extension URLSession: Session {
             request.addValue(key, forHTTPHeaderField: "DD-API-KEY")
 
             let task = dataTask(with: request) {data, response, error in
+                print(response)
                 if let error = error {
                     handler(.failure(error))
                 } else if let httpResponse = response as? HTTPURLResponse, (200..<300).contains(httpResponse.statusCode) {
+                    handler(.success(httpResponse.statusCode))
+                } else if let httpResponse = response as? HTTPURLResponse {
                     handler(.success(httpResponse.statusCode))
                 } else {
                     handler(.failure(data.flatMap{ String(data: $0, encoding: .utf8) ?? "Invalid Response" }))
